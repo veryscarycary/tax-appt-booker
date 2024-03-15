@@ -3,7 +3,7 @@ A script that helps to find the soonest tax appointment
 
 ## Usage
 
-Run the script using the instructions below. After running the scriot, the latest tax appointments will be shown after every 5 minutes. When an earlier appointment is found, an *audio message* will tell you to book now.
+Run the script using the instructions below. After running the scriot, the latest tax appointments will be shown after every 5 minutes. When an earlier appointment is found, an _audio message_ will tell you to book now.
 
 ### Node
 
