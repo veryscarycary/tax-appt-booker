@@ -1,5 +1,24 @@
-let REFRESH_INTERVAL = 5; // minutes
+if (isNode()) {
+    // NODE
+    var { exec } = require('child_process');
+}
 
+let REFRESH_INTERVAL = 5; // minutes
+let lastDate = null;
+
+function isNode() {
+    return typeof window === 'undefined';
+}
+
+// Speak the given text using the macOS 'say' command
+function speak(text) {
+    exec(`say "${text}"`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            return;
+        }
+    });
+}
 
 function nodeFetch(url) {
     return fetch(url, {
@@ -42,7 +61,7 @@ function browserFetch(url) {
 }
 
 function flexibleFetch(url) {
-    if (typeof window === 'undefined') {
+    if (isNode()) {
         // NODE
         return nodeFetch(url);
     }
@@ -61,6 +80,23 @@ async function getJuanAppts() {
     if (result.slots.length) {
         const soonestDateMils = result.slots[0].d;
         const soonestDate = new Date(soonestDateMils).toLocaleDateString("fr-CA");
+
+        if (lastDate && soonestDate < lastDate) {
+            const message = 'An earlier date is available. Please book now.';
+
+            // speak the message via audio
+            if (isNode()) {
+                // works on Mac ONLY
+                speak(message);
+            } else {
+                // browser
+                const utterance = new SpeechSynthesisUtterance(message);
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        lastDate = soonestDate;
+
         const dayResponse = await flexibleFetch(`https://scheduler.bookedin.com/api/v3/companies/tax-service-express/availability?d=${soonestDate}&services=&resources=${JUAN_RESOURCE_ID}`);
         const dayResult = await dayResponse.json();
         const juanServices = dayResult.services.filter(service => service.resources.find(resource => resource.resourceId === JUAN_RESOURCE_ID));
